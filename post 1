@@ -5,6 +5,48 @@ date: "2023-08-23"
 output: html_document
 ---
 
-Análise de consistência e tratamento de dados é uma das partes mais importantes para qualquer trabalho envolvendo dados. Imagine que você queira prever o número de vendas de um produto, com base no quanto ele vende por hora
+As etapa de "análise de consistência" e "tratamento" é basicamente onde você "padroniza" os seus dados. É uma das mais importantes para qualquer trabalho envolvendo dados, pois é onde você irá buscar por erros de digitação, classificação de variáveis, entre outros casos, que, se não revisados, irá acarrtar em problemas futuros em qualquer projeto. O texto usará a base de dadods disponibilizado
 
-Antes de começar a trabalhar com um conjunto de dados, seja até mesmo para algo mais "simples", como a criação de um gráfico de barras, é preciso verificar como estes dados estão padronizados. Essa "padronização" é muito importante, pois, se
+### carregamento dos dados
+
+Temos um post inteiro sobre importação de dados, encontrado no link "<https://daslab-ufes.github.io/importando-dados/>", então, iremos dar seguimento para a importação de fato. Quando baixarmos os dados, iremos perceber que o arquivo estará em formato **.rds**, então, iremos usara função
+***readRDS()*** , encontrada no Rbase, ou seja, não precisando carregar uma biblioteca para usar, podendo ser usada de forma direta. Também usaremos a função **head()** para observarmos as 6 primeiras observações do data.frame que será criado.
+
+(APAGAR!!!!!!!!!!
+
+```{r}
+dados_sujos <- "https://raw.githubusercontent.com/observatorioobstetrico/dados_livro_cd_saude/main/base_um/basesuja_covid19.rds"
+
+dados_sujos <- readRDS(url(dados_sujos, "rb"))
+```
+
+)
+
+```{r}
+#dados_sujos <- readRDS("pasta_com_os_dados/arquivo_com_os_dados.rds")
+knitr::kable(head(dados_sujos))
+```
+
+### tratamento da base de dados
+#### Nome das variáveis
+Primeiramente, iremos verificar como os nomes das variaveis do data.frame estão dispostas.
+```{r}
+names(dados_sujos)
+```
+Uma boa prática para padronizar os nomes das variáveis é coloca-las todas em minúsculo, retirar acentos, e substituir espaços por "_" , pois esses são fatores que a linguagem de programação tende a ter problemas para manipular. Um ótimo pacote para manipular nome de variáveis de um data.frame é a biblioteca **janitor**. Ela contém a função **clean_names()** que faz exatamente o que a gente está buscando. 
+
+***obs**: neste exemplo, a única diferença visível foi que os nomes estão todos em minúscolos, porque eles já estavam sem acento e espaço, mas é importante ter em mente que est não é a única função do **clean_names()**
+
+```{r message=FALSE, warning=FALSE}
+#install.packages("janitor")
+library(janitor)
+dados_sujos <- janitor::clean_names(dados_sujos)
+names(dados_sujos)
+```
+#### variaveis duplicadas ou vazias
+É comum encontrarmos algumas observações duplicadas em nosso data.frame, então sempre é interessante rodar o código **get_dupes()** para verificar.
+```{r}
+janitor::get_dupes(dados_sujos)
+
+```
+Esse código irá verificar se existe alguma observação repetida, ou seja, se tem uma variável com os exatos mesmos valores de outra. A primeira linha que nos é retornada nos diz que, como eu não especifiquei quais variaveis vou considerar para verificar, o código usará todas as disponíveis. A segunda linha nos diz que não há nenhuma variável duplicada
