@@ -15,23 +15,23 @@ Temos um post inteiro sobre importação de dados, encontrado no link "<https://
 (APAGAR!!!!!!!!!!
 
 ```{r}
-dados_sujos <- "https://raw.githubusercontent.com/observatorioobstetrico/dados_livro_cd_saude/main/base_um/basesuja_covid19.rds"
+dados <- "https://raw.githubusercontent.com/observatorioobstetrico/dados_livro_cd_saude/main/base_um/basesuja_covid19.rds"
 
-dados_sujos <- readRDS(url(dados_sujos, "rb"))
+dados <- readRDS(url(dados, "rb"))
 ```
 
 )
 
 ```{r}
-#dados_sujos <- readRDS("pasta_com_os_dados/arquivo_com_os_dados.rds")
-knitr::kable(head(dados_sujos))
+#dados <- readRDS("pasta_com_os_dados/arquivo_com_os_dados.rds")
+knitr::kable(head(dados))
 ```
 
 ### tratamento da base de dados
 #### Nome das variáveis
 Primeiramente, iremos verificar como os nomes das variaveis do data.frame estão dispostas.
 ```{r}
-names(dados_sujos)
+names(dados)
 ```
 Uma boa prática para padronizar os nomes das variáveis é coloca-las todas em minúsculo, retirar acentos, e substituir espaços por "_" , pois esses são fatores que a linguagem de programação tende a ter problemas para manipular. Um ótimo pacote para manipular nome de variáveis de um data.frame é a biblioteca **janitor**. Ela contém a função **clean_names()** que faz exatamente o que a gente está buscando. 
 
@@ -40,13 +40,67 @@ Uma boa prática para padronizar os nomes das variáveis é coloca-las todas em 
 ```{r message=FALSE, warning=FALSE}
 #install.packages("janitor")
 library(janitor)
-dados_sujos <- janitor::clean_names(dados_sujos)
-names(dados_sujos)
+dados <- janitor::clean_names(dados)
+names(dados)
 ```
 #### variaveis duplicadas ou vazias
 É comum encontrarmos algumas observações duplicadas em nosso data.frame, então sempre é interessante rodar o código **get_dupes()** para verificar.
 ```{r}
-janitor::get_dupes(dados_sujos)
+janitor::get_dupes(dados)
 
 ```
-Esse código irá verificar se existe alguma observação repetida, ou seja, se tem uma variável com os exatos mesmos valores de outra. A primeira linha que nos é retornada nos diz que, como eu não especifiquei quais variaveis vou considerar para verificar, o código usará todas as disponíveis. A segunda linha nos diz que não há nenhuma variável duplicada
+Esse código irá verificar se existe alguma observação repetida, ou seja, se tem uma variável com os exatos mesmos valores de outra. A primeira linha que nos é retornada nos diz que, como eu não especifiquei quais variaveis vou considerar para verificar, o código usará todas as disponíveis. A segunda linha nos diz que não há nenhuma variável duplicada. Se o caso fosse de existir dados duplicados, poderiamos resolver o problema usando a função **distinct** do pacote **dplyr**, que veremos a seguir.
+
+#### identificar problemas nas variáveis
+
+Comentado anteriormente, um dos pacotes mais poderosos para a manipulação de dados é o pacote **dplyr**, que usaremos para realizar as devidas transformações necessárias. 
+
+Quando nós lemos uma base de dados no R, é possível que algumas das nossas variáveis estejam classificadas de forma errada. Imagine que tenhamos uma variavel que represente um número, porém, o R entende que represente, na realidade, uma letra. Isso ocasionaria em problemas na nossa análise, portanto, é necessário entendermos como conferir esses casos.
+
+Alguns dos tipos principais de dados são: 
+
+**numeric**: Esse tipo de dado representa tanto números inteiros quanto números de ponto flutuante. É usado para armazenar valores numéricos. Por exemplo: 3.14, -42, 100.
+
+**factor**: Especificamente para armazenar números inteiros sem casas decimais. Por exemplo: 1, -10, 500.
+
+**string**: Usado para armazenar texto ou sequências de caracteres. As sequências de caracteres são colocadas entre aspas simples ou duplas. Por exemplo: "Olá, mundo!", 'Programação em R'.
+
+**logic**: Esse tipo representa valores booleanos, que podem ser TRUE (verdadeiro) ou FALSE (falso), indicando condições binárias. Por exemplo: TRUE, FALSE.
+
+**Date**: Usado para armazenar datas. O R possui uma classe integrada chamada Date para lidar com datas. Por exemplo: as.Date("2023-08-24")
+
+
+usaremos a função **glimpse()** para verificarmos a classe de cada uma das variáveis do nosso data.frame.
+```{r message=FALSE, warning=FALSE}
+#installando e carregando o pacote
+#install.packages("dplyr")
+library(dplyr)
+```
+
+```{r}
+dplyr::glimpse(dados)
+```
+
+Percebemos que as variaveis de datas estão calssificadas como "characters", então, vamos arrumar usando a função **as.Date()** com a seguinte sintaxe:
+```{r}
+#as.Date(base_de_dados$variável, format = "%d/%m/%Y")
+```
+repare que o "format" está para o formato de datas que usamos no Brasil, ou seja, "dia/mês/ano". agora, aplicaremos a formula para os casos necessários.
+```{r}
+dados$dt_notific  <- as.Date(dados$dt_notific, format = "%d/%m/%Y")
+dados$dt_sin_pri  <- as.Date(dados$dt_sin_pri, format = "%d/%m/%Y")
+dados$dt_nasc  <- as.Date(dados$dt_nasc, format = "%d/%m/%Y")
+dados$dt_interna  <- as.Date(dados$dt_interna, format = "%d/%m/%Y")
+dados$dt_entuti  <- as.Date(dados$dt_entuti, format = "%d/%m/%Y")
+dados$dt_saiduti  <- as.Date(dados$dt_saiduti, format = "%d/%m/%Y")
+```
+
+A função as.Date informa para o R que a variável indicada é de data. O argumento format indica o formato que está a data, nesse caso, “dia/mês/ano”. Aqui é possível verificar todos os formatos de datas da função. Vamos ver como ficou:
+```{r}
+glimpse(dados)
+```
+
+Agora, as variáveis que representam datas estão sendo consideradas corretamente pelo R.
+
+
+
