@@ -18,7 +18,7 @@ No decorrer do texto podem surgir algumas dúvidas em relação a algumas palavr
 
 Iremos usar alguns pacotes no decorrer do nosso projeto, então irei instalar e carregar todos os pacotes que usaremos.
 
-```{r, warning=F}
+```{r, warning=F, error=F}
 #install.packages("janitor")
 #install.packages("dplyr")
 #install.packages("knitr")
@@ -139,7 +139,7 @@ dados$dt_saiduti  <- as.Date(dados$dt_saiduti, format = "%d/%m/%Y")
 A função as.Date informa para o R que a variável indicada é de data. O argumento format indica o formato que está a data, nesse caso, "dia/mês/ano". Aqui é possível verificar todos os formatos de datas da função. Vamos ver como ficou:
 
 ```{r}
-glimpse(dados)
+dplyr::glimpse(dados)
 ```
 
 Agora, as variáveis que representam datas estão sendo consideradas corretamente pelo R.
@@ -193,7 +193,7 @@ dados$tosse <- forcats::fct_recode(dados$tosse,
                                    nao = "2",
                                    ignorado = "9")
 
-glimpse(dados)
+dply::glimpse(dados)
 ```
 ótimo, agora, vamos observar a variável idade. A idade pode ser representada tanto como inteiro, quanto como decimal, então, usaremos a função "unique()" que nos retornas todos os valores de uma variável, porém sem repetí-los.
 
@@ -235,7 +235,6 @@ Encontramos um erro, pois mesmo o valor de "chr_1" sendo 1 , este não está sen
 ### Considerações finais
 
 Esse post é apenas a ponta de um enorme iceberg. Focamos aqui nos principais problemas que podemos encontrar quando estamos tratando uma base de dados, de forma introdutória, ou seja, podem aparecer problemas que não foram citados aqui, o que não é motivo de preocuação, mas sim de motivação para aprender mais a fundo as possiblidades nesta etapa. Esperamos que com as dicas que foram dadas ao longo do texto você consiga iniciar os seus primeiros projetos. 
-
 
 
 
