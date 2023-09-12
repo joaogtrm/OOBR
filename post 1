@@ -8,13 +8,12 @@ output: html_document
 A etapa de tratamento de dados é, basicamente, uma etapa de padronização. É uma das mais importantes para qualquer trabalho envolvendo dados, pois é onde você irá buscar por erros de digitação, classificação de variáveis, entre outros casos, que, se não revisados, é quase certo que irão resultar em problemas. O texto usará a base de dados disponibilizada pelo Observatório Obstétrico Brasileiro, encontrada [aqui](https://github.com/observatorioobstetrico/livro_cd_saude-QUARTO/blob/main/dados/dados_covid%5BSUJO%5D.rds). 
 No decorrer do texto podem surgir algumas dúvidas em relação a algumas palavras, então deixarei aqui um mini-dicionário, algo simples que irá nos ajudar no contexto do exemplo com que iremos trabalhar:
   
-  1 - Data frame/data.frame/df: Nossa base de dados, tabela onde encontraremos nossas variáveis, observações e valores 
+
+  1 - Variáveis: Colunas do nosso data frame 
   
-  2 - Variáveis: Colunas do nosso data frame 
+  2 - Observações: Cada pessoa que teve seus dados coletados
   
-  3 - Observações: Cada pessoa que teve seus dados coletados
-  
-  4 - Valores: Os dados de cada pessoa, referente a cada coluna
+  3 - Valores: Os dados de cada pessoa, referente a cada coluna
 
 Iremos usar alguns pacotes no decorrer do nosso projeto, então irei instalar e carregar todos os pacotes que usaremos.
 
