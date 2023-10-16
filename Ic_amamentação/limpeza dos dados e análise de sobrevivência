@@ -1,0 +1,46 @@
+## carregamento das biblioecas 
+library(tidyverse)  
+library(here)       
+library(haven)         
+library(labelled)    
+library(janitor)
+library(ggplot2)
+library(survival)
+
+## Importação de dados
+dados <- read_sav("dados-amamentacao.sav")
+
+## criação do dicionário(de algumas variáveis) 
+dicionario <- labelled::generate_dictionary(dados)
+
+## limpando dados
+dados_limpos <- dados %>% 
+  clean_names() %>% 
+  select(!c(57,58)) %>% 
+  mutate(
+    id_geral=c(1:256),
+    n_rand=as.integer(n_rand),
+    idade_faixa_et=as.factor(idade_faixa_et),
+    escolaridade_cat=as.factor(escolaridade_cat)
+         )
+
+## Dados para análise de sobrevivência
+dados_surv_1 <- dados_limpos %>% 
+  select(tempo_vida_ate_parada_amament_ate180, censura, id_geral) %>% 
+  na.omit() %>% 
+  select(id_geral)
+dados_surv <- dados_limpos %>% 
+  inner_join(dados_surv_1, by = "id_geral")
+
+## Vetor de sobrevivência
+surv_vetor <- Surv(dados_surv$tempo_vida_ate_parada_amament_ate180,dados_surv$censura)
+
+## Criação da função de Kaplan-Meier
+ekm<- survfit(surv_vetor~1)
+
+## plot da função de Kaplan-Meier
+plot(ekm, mark.time = T,conf.int = F)
+
+##teste log_rank, com base na escolaridade
+surv_diff <- survdiff(surv_vetor~dados_surv$escolaridade_cat)
+surv_diff
