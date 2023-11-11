@@ -19,7 +19,7 @@ No decorrer do texto podem surgir algumas dúvidas em relação a algumas palavr
   
 # Instalação de pacotes e carregamento dos dados
 
-Serão usados alguns pacotes no decorrer do nosso projeto, que contém funções que serão de grande ajuda para tratar os dados. Será necessário instalar o pacote, caso não o tenha. A maneira mais fácil de instalar pacotes é usando a função `install.packages()`, conforme a sintaxe abaixo.
+Serão usados alguns pacotes no decorrer do nosso projeto, que contém funções que serão de grande ajuda para tratar os dados. Será necessário instalar o pacote, caso não o tenha. A maneira mais fácil de instalar pacotes é usando a função ***install.packages()***, conforme a sintaxe abaixo.
 ```
 install.packages("janitor") 
 install.packages("dplyr")   
@@ -27,7 +27,7 @@ install.packages("knitr")
 install.packages("forcats") 
 ```
 
-Depois de instalados, os pacotes podem ser carregados, usadno a função `library()`.
+Depois de instalados, os pacotes podem ser carregados, usadno a função ***library()***.
 
 ```{r, warning=F, error=F, message=F}
 library(janitor) #pacote para tratar o nome das variáveis, e identificar duplicatas
@@ -36,7 +36,7 @@ library(knitr) # pacote para formatar tabelas
 library(forcats)# pacote para trocar valores das variaveis por seus valores contidos no dicionário 
 ```
 
-Neste [link](<https://daslab-ufes.github.io/importando-dados/>) encontra-se um post inteiro sobre importação de dados, porém, como a base de dados está no github, é possível fazer a importação sem a necessidade de baixar a base no computador, acessando o link do github, copiando o caminho do link anexado em "view Raw", o salvando como link,usando a função `url()`, e depois o lendo como uma base de dados. Neste caso será usada a função `readRDS()`, pois o arquivo está em formato ".RDS".
+Neste [link](<https://daslab-ufes.github.io/importando-dados/>) encontra-se um post inteiro sobre importação de dados, porém, como a base de dados está no github, é possível fazer a importação sem a necessidade de baixar a base no computador, acessando o link do github, copiando o caminho do link anexado em "view Raw", o salvando como link,usando a função  ***url()***, e depois o lendo como uma base de dados. Neste caso será usada a função ***readRDS()***, pois o arquivo está em formato ".RDS".
 
 ```{r}
 link <- "https://raw.githubusercontent.com/observatorioobstetrico/dados_livro_cd_saude/main/base_um/basesuja_covid19.rds" # salvando o link do "view Raw" como um texto
@@ -44,7 +44,7 @@ link <- url(link) # salvando o link própriamente como uma url
 dados_completos <- readRDS(link) # lendo a base de dados, e a salvando
 ```
 
-Como a base de dados é muito grande (46 variáveis), serão usadas apenas algumas variáveis, para fins didáticos.A função `select()`, do pacote `dplyr`, será usada, pois ela escolhe certas variáveis e cria uma nova base com elas. 
+Como a base de dados é muito grande (46 variáveis), serão usadas apenas algumas variáveis, para fins didáticos.A função ***select()***, do pacote ***dplyr***, será usada, pois ela escolhe certas variáveis e cria uma nova base com elas. 
 
 ```{r}
 dados <- dplyr::select(dados_completos, 
@@ -61,13 +61,15 @@ dados <- dplyr::select(dados_completos,
   )
 ```
 
-**OBS::** No código acima, usamos o nome do pacote mais 4 pontos, `dplyr::`, para indicar de qual pacote pertence a função que está sendo utilizada, neste caso `select()`. Isso é importante porque dois pacotes podem ter duas funções completamente diferentes, mas com o mesmo nome, sendo necessário explicitar qual pacote está sendo utilizado.
+**OBS:** No código acima, usamos o nome do pacote mais 4 pontos, ***dplyr::***, para indicar de qual pacote pertence a função que está sendo utilizada, neste caso ***select()***. Isso é importante porque dois pacotes podem ter duas funções completamente diferentes, mas com o mesmo nome, sendo necessário explicitar qual pacote está sendo utilizado.
 
-A função `head()` será usada para nos retornar as 6 primeiras observações da base de dados, como uma tabela. A função `kable()`, do pacote `knitr`, também será usada, pois ela é uma função que formata tabelas para melhor vizualização.
-**recomendação:** Experimente usar a função sem e com a função `kable()` para entender como essa função modifica
+A função ***head()*** será usada para nos retornar as 6 primeiras observações da base de dados, como uma tabela. A função ***kable()***, do pacote ***knitr***, também será usada, pois ela é uma função que formata tabelas para melhor vizualização.
+
+**recomendação:** Experimente usar a função sem e com a função ***kable()*** para entender como essa função modifica
 
 ```{r}
-knitr::kable(head(dados))
+#knitr::kable(head(dados))
+head(dados)
 ```
 
 # Análise de consistência 
@@ -82,7 +84,7 @@ Primeiramente, será verificado os nomes das variáveis que estão na base de da
 names(dados)
 ```
 
-Uma boa prática para padronizar os nomes das variáveis é coloca-los todos em minúsculo, retirar acentos, e substituir espaços por "\_". A função `clean_names()`, do pacote `janitor`, pode ser usada neste caso. 
+Uma boa prática para padronizar os nomes das variáveis é coloca-los todos em minúsculo, retirar acentos, e substituir espaços por "\_". A função ***clean_names()***, do pacote ***janitor***, pode ser usada neste caso. 
 
 ```{r message=FALSE, warning=FALSE}
 dados <- janitor::clean_names(dados)
@@ -93,7 +95,7 @@ names(dados)
 
 ## Variaveis duplicadas ou vazias
 
-É comum haver algumas observações duplicadas (basicamente cópias exatas de linhas que aparecem mais de uma vez no conjunto de dados) em nossa base de dados. A função `get_dupes()`, do pacote `janitor`, identifica a existência dessas observações e retorna uma tabela com as variáveis dúplicadas.
+É comum haver algumas observações duplicadas (basicamente cópias exatas de linhas que aparecem mais de uma vez no conjunto de dados) em nossa base de dados. A função ***get_dupes()***, do pacote ***janitor***, identifica a existência dessas observações e retorna uma tabela com as variáveis dúplicadas.
 
 ```{r}
 knitr::kable(janitor::get_dupes(dados))
@@ -106,7 +108,7 @@ knitr::kable(janitor::get_dupes(base_de_dados, variavel_1, variavel_2))
 
 ```
 
-Se o caso fosse de existir dados duplicados, o problema poderia ser resolvido usando a função `distinct()` do pacote `dplyr`, como está escrito abaixo, para remover as observações duplicadas.
+Se o caso fosse de existir dados duplicados, o problema poderia ser resolvido usando a função ***distinct()*** do pacote ***dplyr***, como está escrito abaixo, para remover as observações duplicadas.
 
 ```
 base_de_dados <- distinct(base_de_dados) 
@@ -141,7 +143,7 @@ dados_alunos <- data.frame(Nome = nome, Idade = idade, Série = série)
 knitr::kable(dados_alunos)
 ```
 
-Se o objetivo fosse obter a média das idades, por exemplo, a função `mean()` pode ser usada.
+Se o objetivo fosse obter a média das idades, por exemplo, a função ***mean()*** pode ser usada.
 
 ```{r, error=TRUE}
 mean(dados_alunos$idade)
@@ -158,7 +160,7 @@ Agora, a média for computada corretamente.
 
 ## Mudança de classe de variáveis 
 
-Usar a função `glimpse()` é um dos meios para vereficar a classe de cada uma das variáveis do nossa base de dados.
+Usar a função ***glimpse()*** é um dos meios para vereficar a classe de cada uma das variáveis do nossa base de dados.
 
 ```{r}
 dplyr::glimpse(dados)
@@ -166,7 +168,7 @@ dplyr::glimpse(dados)
 
 ### Variaveis de datas
 
-As variáveis "dt_nasc", "dt_interna", "dt_entuti", e "dt_saiduti" representam datas, mas estão classificadas como "character". A função `as.Date()` será usada para alterar as classes das variáveis para "date", com a seguinte sintaxe:
+As variáveis "dt_nasc", "dt_interna", "dt_entuti", e "dt_saiduti" representam datas, mas estão classificadas como "character". A função ***as.Date()*** será usada para alterar as classes das variáveis para "date", com a seguinte sintaxe:
 
 ```
 base_de_dados$variável <- as.Date(base_de_dados$variável, format = "%d/%m/%Y")
@@ -184,7 +186,7 @@ dplyr::glimpse(dados) # a função é usada novamente para checar se as classes 
 
 ### Variáveis de fator
 
-As variáveis "cs_gestant","puerpera","cs_zona","febre" e "tosse" são variáveis que representam fatores, mas estão classificadas como "integer". A função `as.factor()` será usada para alterar as classes das variáveis para "factor", com a seguinte sintaxe:
+As variáveis "cs_gestant","puerpera","cs_zona","febre" e "tosse" são variáveis que representam fatores, mas estão classificadas como "integer". A função ***as.factor()*** será usada para alterar as classes das variáveis para "factor", com a seguinte sintaxe:
 
 ```
 base_de_dados$variável <- as.factor(base_de_dados$variável)
@@ -199,7 +201,7 @@ dados$tosse <- as.factor(dados$tosse)
 dplyr::glimpse(dados)
 ```
 
-Agora, as variáveis estão classificadas corretamente, porém, os valores dessas variáveis estão sendo representada como números. Usando o dicionário mencionado no início do texto, os valores das variáveis serão transformados. Para isso, a função `fct_recode()` do pacote `forcats` pode ser usada, com a sintaxe abaixo
+Agora, as variáveis estão classificadas corretamente, porém, os valores dessas variáveis estão sendo representada como números. Usando o dicionário mencionado no início do texto, os valores das variáveis serão transformados. Para isso, a função ***fct_recode()*** do pacote ***forcats*** pode ser usada, com a sintaxe abaixo
 
 ```
 dados$variavel <- forcats::fct_recode(dados$variavel, valor_real = "valor_numerico da base")
@@ -239,7 +241,7 @@ dados$tosse <- forcats::fct_recode(dados$tosse,
 
 Usando novamente a função glimpse, é possível verificar que as classes de todas variáveis foram corrigidas.
 
-**obs:** Não foi preciso mudar classe de nenhuma variável para "double", "integer", nem "numeric", porém se for preciso, as funções `as.double()`,`as.integer` e `as.numeric()`, respectivamente, da mesma forma que os exemplos de datas e fatores
+**obs:** Não foi preciso mudar classe de nenhuma variável para "double", "integer", nem "numeric", porém se for preciso, as funções ***as.double()***,***as.integer()*** e ***as.numeric()***, respectivamente, da mesma forma que os exemplos de datas e fatores
 
 ## Considerações finais
 
