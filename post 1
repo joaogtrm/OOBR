@@ -1,153 +1,194 @@
 ---
-title: "Tratamento de dados"
+title: "Tratamento dos dados"
 author: "Joao_Gabriel"
 date: "2023-08-23"
 output: html_document
 ---
 
-A etapa de tratamento de dados é, basicamente, uma etapa de padronização. É uma das mais importantes para qualquer trabalho envolvendo dados, pois é onde você irá buscar por erros de digitação, classificação de variáveis, entre outros casos, que, se não revisados, é quase certo que irão resultar em problemas. O texto usará a base de dados disponibilizada pelo Observatório Obstétrico Brasileiro, encontrada [aqui](https://github.com/observatorioobstetrico/livro_cd_saude-QUARTO/blob/main/dados/dados_covid%5BSUJO%5D.rds). 
-No decorrer do texto podem surgir algumas dúvidas em relação a algumas palavras, então deixarei aqui um mini-dicionário, algo simples que irá nos ajudar no contexto do exemplo com que iremos trabalhar:
-  
+A etapa de tratamento de dados é uma etapa de padronização. Esta é uma das etapas mais importantes para qualquer trabalho envolvendo dados, pois é onde ocorre a buscar por erros de digitação, informações    inconsistentes, classificação errada de variáveis, entre outros que, se não revisados, é quase certo que irão resultar em problemas. Neste texto, é usada a base de dados disponibilizada pelo Observatório Obstétrico Brasileiro, encontrada neste [link](https://github.com/observatorioobstetrico/livro_cd_saude-QUARTO/blob/main/dados/dados_covid%5BSUJO%5D.rds). Os dados considerados nas aplicações são provenientes do Sistema de Informação da Vigilância Epidemiológica da Gripe (SIVEP-Gripe), sistema oficial para o registro dos casos e óbitos por Síndrome Respiratória Aguda Grave (SRAG) disponibilizado pelo Ministério da Saúde. O dicionário da base de dados, que contém a explicação de cada variável, assim como seus possíveis valores, está disponibilizado neste [link](https://observatorioobstetrico.github.io/livro_cd_saude-QUARTO/intro.html#tbl-covid19)
 
-  1 - Variáveis: Colunas do nosso data frame 
+No decorrer do texto podem surgir algumas dúvidas em relação a algumas palavras, então logo abaixo se encontra um mini-dicionário, algo simples que irá nos ajudar no contexto do exemplo com que iremos trabalhar:
   
-  2 - Observações: Cada pessoa que teve seus dados coletados
+  1) Base de dados: Tabela em que estão armazenados os dados.
+
+  2) Variáveis: Colunas da base de dados, características de interesse das unidades de análise.  
   
-  3 - Valores: Os dados de cada pessoa, referente a cada coluna
+  3) Observações: Linhas da base de dados, cada unidade de análise que teve seus dados coletados.
 
-Iremos usar alguns pacotes no decorrer do nosso projeto, então irei instalar e carregar todos os pacotes que usaremos.
+  4) Valores: a informação, numérica ou não, de uma variável para determianda observação, ou vice-versa. Ex: idade (variável) do paciente 30 (observação).
+  
+# Instalação de pacotes e carregamento dos dados
 
-```{r, warning=F, error=F}
-#install.packages("janitor")
-#install.packages("dplyr")
-#install.packages("knitr")
-#install.packages("forcats")
-library(janitor)
-library(dplyr)
-library(knitr)
-library(forcats)
+Serão usados alguns pacotes no decorrer do nosso projeto, que contém funções que serão de grande ajuda para tratar os dados. Será necessário instalar o pacote, caso não o tenha. A maneira mais fácil de instalar pacotes é usando a função `install.packages()`, conforme a sintaxe abaixo.
+```
+install.packages("janitor") 
+install.packages("dplyr")   
+install.packages("knitr")
+install.packages("forcats") 
 ```
 
+Depois de instalados, os pacotes podem ser carregados, usadno a função `library()`.
 
-### Carregamento dos dados
-
-Temos um post inteiro sobre importação de dados, encontrado [aqui](<https://daslab-ufes.github.io/importando-dados/>), então, iremos dar seguimento para a importação de fato. Porém, como estaremos usando uma base de dados disponiblizada pelo próprio OOBR, iremos importar os dados diretamente do github, sem ter necessidade de baixar o arquivo em si, como é mostrado abaixo.
-
-```{r}
-dados <- "https://raw.githubusercontent.com/observatorioobstetrico/dados_livro_cd_saude/main/base_um/basesuja_covid19.rds"
-
-dados <- readRDS(url(dados))
+```{r, warning=F, error=F, message=F}
+library(janitor) #pacote para tratar o nome das variáveis, e identificar duplicatas
+library(dplyr) # pacote para tratamento de dados no geral
+library(knitr) # pacote para formatar tabelas
+library(forcats)# pacote para trocar valores das variaveis por seus valores contidos no dicionário 
 ```
 
-Nossa base de dados é muito grande (com 46 variáveis), usaremos apenas algumas das variáveis para nosso estudo, porém note que as aplicações que iremos fazer aqui podem ser aplicadas para o data frame inteiro. Não se incomode de tentar entendê-lo agora, apenas saiba que limitei nossa base a apenas 16 variáveis, as quais eu selecionei uma a uma quais eu quero usar  (ESSA PARTE NÃO SEI SE FICOU LEGAL, TALVEZ EU MUDE OU EXPLIQUE O CÓDIGO REALMENTE)
+Neste [link](<https://daslab-ufes.github.io/importando-dados/>) encontra-se um post inteiro sobre importação de dados, porém, como a base de dados está no github, é possível fazer a importação sem a necessidade de baixar a base no computador, acessando o link do github, copiando o caminho do link anexado em "view Raw", o salvando como link,usando a função `url()`, e depois o lendo como uma base de dados. Neste caso será usada a função `readRDS()`, pois o arquivo está em formato ".RDS".
+
 ```{r}
-dados <- select(dados, 
-    idade, CS_GESTANT, PUERPERA, CS_ZONA, FEBRE, TOSSE, DT_NASC,
-    DT_INTERNA, DT_ENTUTI, DT_SAIDUTI
+link <- "https://raw.githubusercontent.com/observatorioobstetrico/dados_livro_cd_saude/main/base_um/basesuja_covid19.rds" # salvando o link do "view Raw" como um texto
+link <- url(link) # salvando o link própriamente como uma url
+dados_completos <- readRDS(link) # lendo a base de dados, e a salvando
+```
+
+Como a base de dados é muito grande (46 variáveis), serão usadas apenas algumas variáveis, para fins didáticos.A função `select()`, do pacote `dplyr`, será usada, pois ela escolhe certas variáveis e cria uma nova base com elas. 
+
+```{r}
+dados <- dplyr::select(dados_completos, 
+    idade,      # Idade, em anos, da gestante ou puérpera
+    CS_GESTANT, # Momento gestacional ou puerpério
+    PUERPERA,   # Se paciente é puérpera ou parturiente (mulher que pariu recentemente - até 45 dias do parto)
+    CS_ZONA,    # Tipo de zona de residência da gestante ou puérpera
+    FEBRE,      # Se gestante ou puérpera manifestou sintoma de febre
+    TOSSE,      # Se gestante ou puérpera manifestou sintoma de tosse
+    DT_NASC,    # Data de nascimento da gestante ou puérpera
+    DT_INTERNA, # Data em que gestante ou puérpera foi hospitalizada
+    DT_ENTUTI,  # Data de entrada da gestante ou puérpera na UTI
+    DT_SAIDUTI  # Data de saída da gestante ou puérpera na UTI
   )
 ```
 
+**OBS::** No código acima, usamos o nome do pacote mais 4 pontos, `dplyr::`, para indicar de qual pacote pertence a função que está sendo utilizada, neste caso `select()`. Isso é importante porque dois pacotes podem ter duas funções completamente diferentes, mas com o mesmo nome, sendo necessário explicitar qual pacote está sendo utilizado.
 
-Usaremos a função head() para observarmos as 6 primeiras observações da base de dados que será criada, junto à função kable() do pacote knitr, para uma melhor vizualização (recomendação: experimente usar a função sem e com o kable() para entender o porquê dessa função nos ajudar, neste caso).
+A função `head()` será usada para nos retornar as 6 primeiras observações da base de dados, como uma tabela. A função `kable()`, do pacote `knitr`, também será usada, pois ela é uma função que formata tabelas para melhor vizualização.
+**recomendação:** Experimente usar a função sem e com a função `kable()` para entender como essa função modifica
 
 ```{r}
 knitr::kable(head(dados))
-#Também poderia ser escrito como "kable(head(dados))"
 ```
-***OBS:** Observe que, no código, afirmei que o uso da sintaxe "kabble::" não era necessário para a função funcionar, neste caso. O uso dessa sintaxe se deve para dizer ao R que você quer usar aquele pacote em específico, ou seja, se tiverem dois pacotes com funções de mesmo nome, ele usará aquele que foi dito no código. Porém, isso vai além da funcionalidade, pois padronizando seu código dessa forma, outras pessoas que tiverem acesso a ele terão mais facilidade para entender o que, e como, seu código está fazendo (essa etapa é chamada de "documentação")
 
-### Análise de consistência 
+# Análise de consistência 
 
-Iremos explorar a nossa base de dados em busca de inconsistências, como erros de digitação, observações duplicadas, valores impossíveis(Ex: uma coluna em que os valores são idades de pessoas, ter um valor de 200) e dados escritos de formas diferentes (dados não padronizados).
+O foco desta etapa será explorar a base de dados em busca de inconsistências, como erros de digitação, observações duplicadas, valores impossíveis (Ex: uma coluna em que os valores são idades de pessoas ter um valor de 200) e dados com valores não padronizados (ex: uma variável de nomes, com valores tanto em maiúsculo quanto em minúsculo).
 
-#### Nome das variáveis
+## Nome das variáveis
 
-
-Primeiramente, iremos verificar como os nomes das variaveis da base de dados estão dispostas.
+Primeiramente, será verificado os nomes das variáveis que estão na base de dados.
 
 ```{r}
 names(dados)
 ```
 
-Uma boa prática para padronizar os nomes das variáveis é coloca-las todas em minúsculo, retirar acentos, e substituir espaços por "\_" , pois esses são fatores que o R pode não entender da forma que a linguagem deveria. Um ótimo pacote para manipular nome de variáveis de uma base é a biblioteca "janitor". Ela contém a função clean_names() que faz exatamente o que a gente está buscando.
+Uma boa prática para padronizar os nomes das variáveis é coloca-los todos em minúsculo, retirar acentos, e substituir espaços por "\_". A função `clean_names()`, do pacote `janitor`, pode ser usada neste caso. 
 
 ```{r message=FALSE, warning=FALSE}
 dados <- janitor::clean_names(dados)
 names(dados)
 ```
 
-**Obs**: neste exemplo, a única diferença visível foi que os nomes estão todos em minúsculos, porque eles já estavam sem acento e espaço, mas é importante ter em mente que esta não é a única função do **clean_names()**
+**Obs**: Neste exemplo, a única diferença visível foi que os nomes estão todos em minúsculos, porque eles já estavam sem acento e sem espaço.
 
-#### Variaveis duplicadas ou vazias
+## Variaveis duplicadas ou vazias
 
-
-É comum encontrarmos algumas observações duplicadas(com os mesmos valores) em nossa base de dados, então, sempre é interessante usar a função **get_dupes()** para verificar.
+É comum haver algumas observações duplicadas (basicamente cópias exatas de linhas que aparecem mais de uma vez no conjunto de dados) em nossa base de dados. A função `get_dupes()`, do pacote `janitor`, identifica a existência dessas observações e retorna uma tabela com as variáveis dúplicadas.
 
 ```{r}
-janitor::get_dupes(dados)
+knitr::kable(janitor::get_dupes(dados))
+```
+
+Como não estão especificadas quais variáveis serão utilizadas para a busca de observações duplicadas, todas elas forma usadas. Um exemplo de busca por observações duplicadas, levando em consideração duas variáveis, se encontra abaixo.
+
+```
+knitr::kable(janitor::get_dupes(base_de_dados, variavel_1, variavel_2))
 
 ```
 
-A primeira linha que nos é retornada nos diz que, como não foram especificadas variáveis para a busca por duplicatas, o código usará todas as variáveis disponíveis, apenas acusando a existência de duplicatas se ao menos duas variáveis tiverem exatamente todos os valores iguais, para todas as variáveis. A segunda linha nos diz que não há nenhuma variável duplicada.
-
-Se o caso fosse de existir dados duplicados, poderíamos resolver o problema usando a função **distinct** do pacote **dplyr**.
+Se o caso fosse de existir dados duplicados, o problema poderia ser resolvido usando a função `distinct()` do pacote `dplyr`, como está escrito abaixo, para remover as observações duplicadas.
 
 ```
 base_de_dados <- distinct(base_de_dados) 
 ```
 
+## Identificar problemas nas variáveis
 
-#### Identificar problemas nas variáveis
+Quando uma base de dados é importada no R, é possível que algumas das variáveis tenham suas classes definidas de uma forma errada. A classe de uma variável se refer ao tipo de dado que uma variável contém, determinando como os dados são armazenados e tratados pelo R. As principais classes de variáveis se encontram abaixo.
 
+**Double (dbl)**: Classe de variáveis que contenham valores numéricos. tanto números inteiros quanto números decimais. Por exemplo: 3.14, -42, 100.
 
-Comentado anteriormente, um pacote poderoso para a manipulação de dados é o pacote **dplyr**, que usaremos para realizar as devidas transformações necessárias.
+**Integer (int)**: Classe de variáveis que contenham números inteiros, sem casas decimais. Por exemplo: 1, -10, 500.
 
-Quando nós lemos uma base de dados no R, é possível que algumas das nossas variáveis estejam classificadas de forma errada. Imagine que tenhamos uma variável que represente um número, porém, o R entende que represente, na realidade, uma letra. Isso ocasionaria em problemas na nossa análise, portanto, é necessário entendermos como conferir esses casos.
+**Character (chr)**: Classe de variáveis que contenham texto ou sequências de caracteres. As sequências de caracteres são colocadas entre aspas simples ou duplas. Por exemplo: "Olá, mundo!", 'Programação em R'. A classe "chr" também tem o nome de "string".
 
-Alguns dos tipos principais de dados são:
+**Logical**: Classe de variáveis que contenham valores booleanos, que podem ser TRUE (verdadeiro) ou FALSE (falso), indicando condições binárias. Por exemplo: "TRUE, FALSE", "0, 1", "sim, não".
 
-**Números decimais** **(dbl)**: Esse tipo de dado representa tanto números inteiros quanto números de ponto flutuante. É usado para armazenar valores numéricos. Por exemplo: 3.14, -42, 100.
+**Date**: Classe de variáveis que contenham datas. Por exemplo: as.Date("2023-08-24").
 
-**Números inteiros (int)**: Especificamente para armazenar números inteiros sem casas decimais. Por exemplo: 1, -10, 500.
+**Factor**: Classe de variáveis que contenham fatores, usada para variáveis que têm um número limitado de categorias ou níveis. Por exemplo: Escalas de 1 a 5, onde um representa muito ruim e 5 representa muito bom. 
 
-**Texto (chr)**: Usado para armazenar texto ou sequências de caracteres. As sequências de caracteres são colocadas entre aspas simples ou duplas. Por exemplo: "Olá, mundo!", 'Programação em R'. A classe "chr" também tem o nome de "string"
+Um exemplo de como variáveis classificadas errôneamente podem acarretar em problemas se encontra abaixo.
 
-**Valores lógicos (logical)**: Esse tipo representa valores booleanos, que podem ser TRUE (verdadeiro) ou FALSE (falso), indicando condições binárias. Por exemplo: "TRUE, FALSE", "0, 1", "sim, não"
+**Ex:** Abaixo, se encontra uma base de dados de nome "dados_alunos". Ela tem informações sobre os alunos, suas idades, e em que série eles se encontram na escola.
 
-**Datas (date)**: Usado para armazenar datas. O R possui uma classe integrada chamada Date para lidar com datas. Por exemplo: as.Date("2023-08-24")
+```{r}
+# criando base de dados
+nome <- c("Maria", "João", "Pedro", "Ana", "Lucas")
+idade <- as.character(c(10, 11, 9, 12, 13))
+série <- c("3ª série", "2ª série", "4ª série", "1ª série", "1ª série")
+dados_alunos <- data.frame(Nome = nome, Idade = idade, Série = série)
+knitr::kable(dados_alunos)
+```
 
-**Fator (factor**): Ele é usado quando temos um conjunto discreto de categorias ou níveis, como categorias de produtos, estados, níveis de educação etc. Os fatores são frequentemente usados para criar variáveis categóricas em R, e eles possuem uma característica adicional de terem níveis que definem as categorias possíveis.
+Se o objetivo fosse obter a média das idades, por exemplo, a função `mean()` pode ser usada.
 
-usaremos a função **glimpse()** para verificarmos a classe de cada uma das variáveis do nossa base de dados.
+```{r, error=TRUE}
+mean(dados_alunos$idade)
+```
+
+Um erro foi encontrado, pois a classe da variável "idade" foi lida como character(texto), e não como numeric(número). A classe será mudada, e o código será rodado novamente 
+
+```{r}
+dados_alunos$Idade <- as.numeric(dados_alunos$Idade)
+mean(dados_alunos$Idade)
+```
+
+Agora, a média for computada corretamente.
+
+## Mudança de classe de variáveis 
+
+Usar a função `glimpse()` é um dos meios para vereficar a classe de cada uma das variáveis do nossa base de dados.
 
 ```{r}
 dplyr::glimpse(dados)
 ```
 
-Percebemos que as variáveis de datas estão calssificadas como "characters", então, vamos arrumar usando a função **as.Date()** com a seguinte sintaxe:
+### Variaveis de datas
+
+As variáveis "dt_nasc", "dt_interna", "dt_entuti", e "dt_saiduti" representam datas, mas estão classificadas como "character". A função `as.Date()` será usada para alterar as classes das variáveis para "date", com a seguinte sintaxe:
 
 ```
-as.Date(base_de_dados$variável, format = "%d/%m/%Y")
+base_de_dados$variável <- as.Date(base_de_dados$variável, format = "%d/%m/%Y")
 ```
 
-Repare que o "format" está para o formato de datas que usamos no Brasil, ou seja, "dia/mês/ano". agora, aplicaremos a formula para os casos necessários.
+Repare que,na sintaxe acima, o "format" está para o formato de datas usado no Brasil, ou seja, "dia/mês/ano", sendo possível ser mudado para outros formatos de datas (como o padrão dos Estados Unidos, "mês/dia/ano"). Agora, a função será aplicada para os casos necessários.
 
 ```{r}
 dados$dt_nasc  <- as.Date(dados$dt_nasc, format = "%d/%m/%Y")
 dados$dt_interna  <- as.Date(dados$dt_interna, format = "%d/%m/%Y")
 dados$dt_entuti  <- as.Date(dados$dt_entuti, format = "%d/%m/%Y")
 dados$dt_saiduti  <- as.Date(dados$dt_saiduti, format = "%d/%m/%Y")
+dplyr::glimpse(dados) # a função é usada novamente para checar se as classes das variáveis realmente foram mudadas
 ```
 
-A função as.Date informa para o R que a variável indicada é de data. O argumento format indica o formato que está a data, nesse caso, "dia/mês/ano". Aqui é possível verificar todos os formatos de datas da função. Vamos ver como ficou:
+### Variáveis de fator
 
-```{r}
-dplyr::glimpse(dados)
+As variáveis "cs_gestant","puerpera","cs_zona","febre" e "tosse" são variáveis que representam fatores, mas estão classificadas como "integer". A função `as.factor()` será usada para alterar as classes das variáveis para "factor", com a seguinte sintaxe:
+
 ```
-
-Agora, as variáveis que representam datas estão sendo consideradas corretamente pelo R.
-
-Seguiremos então com as variáveis qualitativas. Veja que \"cs_zona\" foi identificada como *int*. Isso acontece porque ela foi tabulada como número, como posteriormente variáveis deste tipo serão recodificadas de acordo com o dicionário, precisamos tratá-la como fator. Já as demais variáveis qualitativas estão identificadas como *numeric*, *dbl* ou *character* pois na tabulação suas categorias estão codificadas com números ou textos. Para então dizer ao R o verdadeiro tipo dessas variáveis, vamos utilizar os seguintes comandos:
+base_de_dados$variável <- as.factor(base_de_dados$variável)
+```
 
 ```{r}
 dados$cs_gestant <- as.factor(dados$cs_gestant)
@@ -155,12 +196,10 @@ dados$puerpera <- as.factor(dados$puerpera)
 dados$cs_zona <- as.factor(dados$cs_zona)
 dados$febre <- as.factor(dados$febre)
 dados$tosse <- as.factor(dados$tosse)
-
 dplyr::glimpse(dados)
 ```
 
-Perfeito, estamos com as variáveis classificadas corretamente. Agora, iremos mudar os valores das variáveis qualitativas (fatores) para os seus reais significados, encontrados no dicionário da base, neste [link](LINKKKKKKKKK).
-Para isso, usaremos a biblioteca "forcats", e usaremos sua função "fct_recode()", com a devida sintaxe.
+Agora, as variáveis estão classificadas corretamente, porém, os valores dessas variáveis estão sendo representada como números. Usando o dicionário mencionado no início do texto, os valores das variáveis serão transformados. Para isso, a função `fct_recode()` do pacote `forcats` pode ser usada, com a sintaxe abaixo
 
 ```
 dados$variavel <- forcats::fct_recode(dados$variavel, valor_real = "valor_numerico da base")
@@ -168,9 +207,9 @@ dados$variavel <- forcats::fct_recode(dados$variavel, valor_real = "valor_numeri
 
 ```{r}
 dados$cs_gestant <- forcats::fct_recode(dados$cs_gestant,
-                                     "1tri" = "1",
-                                     "2tri" = "2",
-                                     "3tri" = "3",
+                                     tri1 = "1", 
+                                     tri2 = "2",
+                                     tri3 = "3",
                                      IG_ig = "4",
                                      nao = "5",
                                      ignorado = "9")
@@ -196,45 +235,12 @@ dados$tosse <- forcats::fct_recode(dados$tosse,
                                    nao = "2",
                                    ignorado = "9")
 
-dplyr::glimpse(dados)
-```
-Ótimo, agora, vamos observar a variável idade. A idade pode ser representada tanto como inteiro, quanto como decimal, então, usaremos a função "unique()" que nos retornas todos os valores de uma variável, porém sem repetí-los.
-
-```{r}
-unique(dados$idade)
-```
-Conseguimos perceber que a variável idade tem apenas valores inteiros, então, iremos mudar a sua classe.
-
-```{r}
-dados$idade <- as.integer(dados$idade)
-dplyr::glimpse(dados)
 ```
 
-Um exemplo de como a classe de variáveis pode interferir na nossa anáelise:
+Usando novamente a função glimpse, é possível verificar que as classes de todas variáveis foram corrigidas.
 
-Criarei objetos que representam o número 1 de diferentes formas, estas sendo inteiro, decimal, e character.
+**obs:** Não foi preciso mudar classe de nenhuma variável para "double", "integer", nem "numeric", porém se for preciso, as funções `as.double()`,`as.integer` e `as.numeric()`, respectivamente, da mesma forma que os exemplos de datas e fatores
 
-```{r} 
-numero_1 <- 1
-int_1 <- as.integer(numero_1) #1 representado como inteiro 
-dbl_1 <- as.double(numero_1)  #1 representado como decimal 
-chr_1 <- as.character(numero_1) #1 representado como character
-#
-```
+## Considerações finais
 
-Agora, tentarei somar o inteiro, com o decimal.
-
-```{r}
-int_1+dbl_1
-```
-A soma ocorreu corretamente. Agora, vamos tentar somar o inteiro com o character.
-
-```{r, error=T}
-int_1+chr_1
-```
-
-Encontramos um erro, pois mesmo o valor de "chr_1" sendo 1 , este não está sendo reconhecido pelo R como número, mas sim como character, este por sua vez não podendo fazer parte de operações matemáticas. 
-
-### Considerações finais
-
-Esse post é apenas a ponta de um enorme iceberg. Focamos aqui nos principais problemas que podemos encontrar quando estamos tratando uma base de dados, de forma introdutória, ou seja, podem aparecer problemas que não foram citados aqui, o que não é motivo de preocupação, mas sim de motivação para aprender mais a fundo as possiblidades nesta etapa. Esperamos que com as dicas que foram dadas ao longo do texto você consiga iniciar os seus primeiros projetos. 
+Com o auxílio desse texto, é esperado que você consiga dar seus primeiros passos para realizar uma análise de dados. É possível surgir problemas não mencionados no texto ao lidar com uma base de dados pela primeira vez, no entanto, isso não deve ser motivo de preocupação, mas sim de motivação para explorar mais a fundo as possibilidades nesta etapa.
